@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -33,6 +36,26 @@ public class MovieGridFragment extends Fragment {
     public MovieGridFragment() {
         setHasOptionsMenu(true);
         // Required empty public constructor
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id= item.getItemId();
+
+        if(id==R.id.action_refresh){
+            new FetchMovieTask().execute();
+            return  true;
+
+        }
+        return super.onOptionsItemSelected(item);
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.movie_view_fragment,menu);
     }
 
     @Override
