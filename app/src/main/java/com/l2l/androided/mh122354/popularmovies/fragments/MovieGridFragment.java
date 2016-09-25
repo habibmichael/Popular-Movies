@@ -2,6 +2,7 @@ package com.l2l.androided.mh122354.popularmovies.fragments;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.GridLayout;
@@ -21,6 +24,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.l2l.androided.mh122354.popularmovies.BuildConfig;
+import com.l2l.androided.mh122354.popularmovies.DetailsActivity;
 import com.l2l.androided.mh122354.popularmovies.Movie;
 import com.l2l.androided.mh122354.popularmovies.R;
 import com.squareup.picasso.Picasso;
@@ -46,10 +50,7 @@ public class MovieGridFragment extends Fragment {
     ImageAdapter mMovieAdapter;
     GridView movieGridView;
     ImageView movieImageView;
-    Movie movie;
 
-
-    private static String[] images;
 
     public static final String MOVIE_FRAG_NAME =  MovieGridFragment.class.getSimpleName();
 
@@ -74,6 +75,13 @@ public class MovieGridFragment extends Fragment {
     }
 
     @Override
+    public void onStart(){
+        super.onStart();
+
+        new FetchMovieTask().execute();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.movie_view_fragment,menu);
@@ -90,7 +98,7 @@ public class MovieGridFragment extends Fragment {
                 getActivity(),
                 R.layout.grid_item_movie,
                 R.id.grid_item_movie_imageview,
-                new ArrayList<String>()
+                new ArrayList<Movie>()
         );
 
 
@@ -98,12 +106,45 @@ public class MovieGridFragment extends Fragment {
         movieGridView = (GridView)rootView.findViewById(R.id.gridview_movies);
         movieGridView.setAdapter(mMovieAdapter);
 
-        //TODO add movie grid view click listener
+
+
+
+        movieGridView.setOnItemClickListener(movieListener);
 
         return rootView;
     }
 
-    public class FetchMovieTask extends AsyncTask<Void , Void , Movie[]> {
+    private AdapterView.OnItemClickListener movieListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            Movie selectedMovie;
+            Intent intent = new Intent(getActivity(), DetailsActivity.class);
+            selectedMovie= (Movie)mMovieAdapter.getItem(position);
+            String[] detailInfo= new String[5];
+
+            detailInfo[0]=selectedMovie.getTitle();
+            detailInfo[1]=selectedMovie.getOverview();
+            detailInfo[2]=selectedMovie.getReleaseDate();
+            detailInfo[3]=selectedMovie.getImagePath();
+            detailInfo[4]=Integer.toString(selectedMovie.getRating());
+            intent.putExtra(Intent.EXTRA_TEXT,detailInfo);
+            startActivity(intent);
+
+
+
+
+           // intent.putExtra("MOVIE",selectedMovie);
+
+
+
+        }
+    };
+
+
+
+
+                public class FetchMovieTask extends AsyncTask<Void , Void , Movie[]> {
 
 
         @Override
@@ -116,7 +157,7 @@ public class MovieGridFragment extends Fragment {
 
                     Log.d(MOVIE_FRAG_NAME,movies[i].getImagePath());
 
-                    mMovieAdapter.add(movies[i].getImagePath());
+                    mMovieAdapter.add(movies[i]);
                 }
 
 
@@ -141,17 +182,17 @@ public class MovieGridFragment extends Fragment {
             String language = "en-US";
 
             //Parameters & base url for retreiving data form movie db api
-            final String BASE_URL = "https://api.themoviedb.org/3/movie/popular?";
+            final String BASE_URL = "https://api.themoviedb.org/3/movie/";
             //TODO use movie/popular and movie/top_rated
 
-           // final String SORT_PARAM = "sort_by";
+           final String SORT_BY = "popular";
             final String API_KEY_PARAM = "api_key";
             final String LANGAUGE_PARAM = "language";
             final String PAGE_PARAM = "page";
 
             try {
                 //build uri based on needed params
-                Uri builtUrl = Uri.parse(BASE_URL).buildUpon()
+                Uri builtUrl = Uri.parse(BASE_URL+SORT_BY+"?").buildUpon()
                         .appendQueryParameter(API_KEY_PARAM, apiKey)
                         .appendQueryParameter(LANGAUGE_PARAM, language)
                   //      .appendQueryParameter(SORT_PARAM, sortFilter)
@@ -277,18 +318,16 @@ public class MovieGridFragment extends Fragment {
     public static class ImageAdapter extends ArrayAdapter{
 
         private Context mContext;
-        private ArrayList<String> imagePathList;
+        private ArrayList<Movie> movieList;
 
 
-        public ImageAdapter(Context context, int resourceLayout,int resourceItem, ArrayList<String> objects) {
+        public ImageAdapter(Context context, int resourceLayout,int resourceItem, ArrayList<Movie> objects) {
 
             super(context,resourceLayout,resourceItem,objects);
             mContext=context;
-            imagePathList=objects;
+            movieList=objects;
 
       }
-
-
 
         @NonNull
         @Override
@@ -303,7 +342,9 @@ public class MovieGridFragment extends Fragment {
             }
 
             //Set each image view with image from the url
-            Picasso.with(mContext).load(imagePathList.get(position)).into(imageView);
+                String imageUrl  = movieList.get(position).getImagePath();
+            Log.d(MOVIE_FRAG_NAME,imageUrl);
+           Picasso.with(mContext).load(imageUrl).into(imageView);
 
 
             return imageView;
