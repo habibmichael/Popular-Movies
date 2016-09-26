@@ -3,9 +3,11 @@ package com.l2l.androided.mh122354.popularmovies.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -27,6 +29,7 @@ import com.l2l.androided.mh122354.popularmovies.BuildConfig;
 import com.l2l.androided.mh122354.popularmovies.DetailsActivity;
 import com.l2l.androided.mh122354.popularmovies.Movie;
 import com.l2l.androided.mh122354.popularmovies.R;
+import com.l2l.androided.mh122354.popularmovies.SettingsActivity;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -70,6 +73,9 @@ public class MovieGridFragment extends Fragment {
             return  true;
 
         }
+        if(id==R.id.action_settings){
+            startActivity(new Intent(getActivity(),SettingsActivity.class));
+        }
         return super.onOptionsItemSelected(item);
 
     }
@@ -77,8 +83,16 @@ public class MovieGridFragment extends Fragment {
     @Override
     public void onStart(){
         super.onStart();
+        updateMovieList();
+    }
 
-        new FetchMovieTask().execute();
+    private void updateMovieList() {
+
+        FetchMovieTask movieTask = new FetchMovieTask();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortPref = preferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_default));
+        movieTask.execute(sortPref);
+
     }
 
     @Override
@@ -144,7 +158,7 @@ public class MovieGridFragment extends Fragment {
 
 
 
-                public class FetchMovieTask extends AsyncTask<Void , Void , Movie[]> {
+                public class FetchMovieTask extends AsyncTask<String , Void , Movie[]> {
 
 
         @Override
@@ -167,7 +181,7 @@ public class MovieGridFragment extends Fragment {
 
 
         @Override
-        protected Movie[] doInBackground(Void... voids) {
+        protected Movie[] doInBackground(String... params) {
 
             //api key for authentication
             String apiKey = BuildConfig.MOVIE_DB_API_KEY;
@@ -183,12 +197,12 @@ public class MovieGridFragment extends Fragment {
 
             //Parameters & base url for retreiving data form movie db api
             final String BASE_URL = "https://api.themoviedb.org/3/movie/";
-            //TODO use movie/popular and movie/top_rated
 
-           final String SORT_BY = "popular";
             final String API_KEY_PARAM = "api_key";
             final String LANGAUGE_PARAM = "language";
             final String PAGE_PARAM = "page";
+
+            String SORT_BY = params[0];
 
             try {
                 //build uri based on needed params
