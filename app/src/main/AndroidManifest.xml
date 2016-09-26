@@ -18,8 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DetailsActivity" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".DetailsActivity"
+            android:parentActivityName=".MovieGridActivity"/>
+        <activity android:name=".SettingsActivity"
+            android:parentActivityName=".MovieGridActivity"/>
     </application>
 
 </manifest>

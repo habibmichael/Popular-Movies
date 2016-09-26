@@ -68,13 +68,9 @@ public class MovieGridFragment extends Fragment {
 
         int id= item.getItemId();
 
-        if(id==R.id.action_refresh){
-            new FetchMovieTask().execute();
-            return  true;
-
-        }
         if(id==R.id.action_settings){
             startActivity(new Intent(getActivity(),SettingsActivity.class));
+            return true;
         }
         return super.onOptionsItemSelected(item);
 
